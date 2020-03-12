@@ -1,0 +1,225 @@
+libname in 'C:/Users/natjo/Documents/My SAS Files/9.4';
+data familychild;
+merge in.nhis2012family in.nhis2012samplechild (in=inxxchild);
+by hhx fmx;
+if inxxchild;
+run;
+Proc format;
+
+value ASTHMAF
+	1='Yes'
+	2='No'
+	.,7,9='Missing';
+value CSINYRF
+	1='Yes'
+	2='No'
+	.,7,9='Missing';
+
+value CASHYRF
+	1='Yes'
+	2='No'
+	.,7,9='Missing';
+value CASSTILLF
+	1='Yes'
+	2='No'
+	.,7,9='Missing';
+value RALLG2F
+	1='Yes'
+	2='No'
+	.,7,9='Missing';
+value SEXF
+	1='Male'
+	2='Female'
+	.,7,9='Missing';
+
+value RACEF
+	1='White'
+	2='Black'
+	3='Other'
+	4='Hispanic';
+
+value AGEF
+1='4 TO 8 year olds'
+2='9 to 13 year olds'
+3='14+';
+
+value BIRTHWEIGHTF
+	0500-2500='Low Birth Weight'
+	2501-4000='Normal Birth Weight'
+	4001-5500='Large Birth Weight'
+	
+	9997, 9998, 9999='Missing';
+
+run;
+OPTIONS NOFMTERR;
+RUN;
+
+Data Sinasthma;
+set familychild;
+format _all_;
+where (4 LE AGE_P LE 17);
+
+ATTRIB Asthma LENGTH=3 LABEL='Asthma Issues';
+Asthma=.;
+if CASSTILL=1 then Asthma=1;
+if CASSTILL=2 then Asthma=2;
+if CASHYR=1 then Asthma=1;
+if CASHYR=2 then Asthma=2;
+if CASSTILL=7-9 then Asthma=.;
+if CASHYR=7-9 then Asthma=.;
+
+
+ATTRIB RACE LENGTH=3 LABEL='Race';
+RACE=.;
+if RACERPI2=01 then RACE=01;
+if RACERPI2=02 then RACE=02;
+if RACERPI2=03 then RACE=3;
+if RACERPI2=04 then RACE=3;
+if RACERPI2=05 then RACE=3;
+if RACERPI2=06 then RACE=3;
+
+
+ATTRIB ETH LENGTH=3 LABEL='Ethnicity';
+ETH=.;
+if HISPAN_I=00 then ETH=4;
+if HISPAN_I=01 then ETH=4;
+if HISPAN_I=02 then ETH=4;
+if HISPAN_I=03 then ETH=4;
+if HISPAN_I=04 then ETH=4;
+if HISPAN_I=05 then ETH=4;
+if HISPAN_I=06 then ETH=4;
+if HISPAN_I=07 then ETH=4;
+if HISPAN_I=08 then ETH=4;
+if HISPAN_I=09 then ETH=4;
+if HISPAN_I=10 then ETH=4;
+if HISPAN_I=11 then ETH=4;
+if HISPAN_I=12 then ETH=4;
+
+ATTRIB RACE_ETH LENGTH=3 LABEL='Race/Ethnicity';
+if RACE=1 then RACE_ETH=1;
+if RACE=2 then RACE_ETH=2;
+if RACE=3 then RACE_ETH=3;
+if ETH=4 then RACE_ETH=4;
+
+ATTRIB AGE LENGTH=3 LABEL='Age of Sample Child';
+AGE=.;
+if AGE_P=4 then AGE=1;
+if AGE_P=5 then AGE=1;
+if AGE_P=6 then AGE=1;
+if AGE_P=7 then AGE=1;
+if AGE_P=8 then AGE=1;
+if AGE_P=9 then AGE=2;
+if AGE_P=10 then AGE=2;
+if AGE_P=11 then AGE=2;
+if AGE_P=12 then AGE=2;
+if AGE_P=13 then AGE=2;
+if AGE_P=14 then AGE=3;
+if AGE_P=15 then AGE=3;
+if AGE_P=16 then AGE=3;
+if AGE_P=17 then AGE=3;
+if AGE_P=. then AGE=.;
+RUN;
+
+
+Proc freq data=sinasthma;
+Tables Asthma*(CSINYR AGE RALLG2 BWTGRM_P RACE SEX);
+Format
+CSINYR CSINYRF.
+Asthma Asthmaf.
+AGE AGEF.
+RALLG2 RALLG2F.
+BWTGRM_P BIRTHWEIGHTF.
+RACE RACEF.
+SEX SEXF.;
+RUN;
+
+Proc surveyfreq data=sinasthma;
+Tables Asthma*(CSINYR AGE RALLG2 BWTGRM_P RACE SEX)/ROW COL CHISQ OR;
+Format
+CSINYR CSINYRF.
+Asthma Asthmaf.
+AGE AGEF.
+RALLG2 RALLG2F.
+BWTGRM_P BIRTHWEIGHTF.
+RACE RACEF.
+SEX SEXF.;
+RUN;
+
+***CRUDE ODDS***;
+
+Proc logistic data=sinasthma DESCENDING;
+Class CSINYR (PARAM=REF REF='No');
+MODEL Asthma=CSINYR;
+Format 
+CSINYR CSINYRF.
+Asthma Asthmaf.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class AGE (PARAM=REF REF='4 TO 8 year olds');
+MODEL Asthma=AGE;
+Format 
+Asthma Asthmaf.
+AGE AGEF.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class RALLG2 (PARAM=REF REF='No');
+MODEL Asthma=RALLG2;
+Format 
+Asthma Asthmaf.
+RALLG2 RALLG2F.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class BWTGRM_P (PARAM=REF REF='Normal Birth Weight');
+MODEL Asthma=BWTGRM_P;
+Format 
+Asthma Asthmaf.
+BWTGRM_P BIRTHWEIGHTF.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class RACE (PARAM=REF REF='White');
+MODEL Asthma=RACE;
+Format 
+Asthma Asthmaf.
+RACE RACEF.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class SEX (PARAM=REF REF='Male');
+MODEL Asthma=SEX;
+Format 
+Asthma Asthmaf.
+SEX SEXF.;
+run;
+
+proc logistic data=sinasthma DESCENDING;
+Class CSINYR (PARAM=REF REF='No')
+AGE (PARAM=REF REF='4 TO 8 year olds')
+RALLG2 (PARAM=REF REF='No')
+BWTGRM_P (PARAM=REF REF='Normal Birth Weight')
+RACE (PARAM=REF REF='White')
+SEX (PARAM=REF REF='Male');
+MODEL Asthma= CSINYR AGE RALLG2 BWTGRM_P RACE SEX;
+Format 
+Asthma Asthmaf.
+CSINYR CSINYRF.
+AGE AGEF.
+RALLG2 RALLG2F.
+BWTGRM_P BIRTHWEIGHTF.
+RACE RACEF.
+SEX SEXF.;
+run;
+
+Proc logistic data=sinasthma DESCENDING;
+Class CSINYR (PARAM=REF REF='No') Age;
+MODEL Asthma=CSINYR CSINYR*Age;
+ODDSRATIO CSINYR/DIFF=REF;
+Format 
+CSINYR CSINYRF.
+Age Agef.
+Asthma Asthmaf.;
+run;
+
