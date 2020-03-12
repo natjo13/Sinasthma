@@ -7,6 +7,9 @@ A logistic regression was done to analyze the data to determine if there is a re
 
 A frequency distribution was done to identify how many cases have missing data. Additionally, a chi-square test can be done to compare the independent variable with the dependent variable. A logistic regression will need to be done to explain the relationship between the independent variable and the dichotomous dependent variable. Potential confounders that will be adjusted for are history of a respiratory allergy, sex, birthweight and race. For this study, age will be considered as a potential effect modifier and will be broken down to three levels: 4 to 8 years old, 9 to 13 years old, and 14+ years old. All in all, by conducting a logistic regression, the final model used to analyze the data will be done by adding all the variables.
 
+
+SAS 9.4 is needed to run the code for this project.
+
 References
 
 Akinbami, L. J., Simon, A. E., & Rossen, L. M. (2015). Changing Trends in Asthma Prevalence Among Children. Pediatrics, 137(1). doi: 10.1542/peds.2015-2354
